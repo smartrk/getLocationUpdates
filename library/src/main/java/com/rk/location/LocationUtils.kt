@@ -5,6 +5,8 @@ import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,17 +30,14 @@ object LocationUtils {
 
     private var resolutionForResult: ActivityResultLauncher<IntentSenderRequest>? = null
 
-
-    fun getCurrentLocation(activity: AppCompatActivity, locationCallBack: LocationCallBack) {
+    fun init(activity: AppCompatActivity) {
         this.activity = activity
-        mainLocationCallBack = locationCallBack
-
         if (resolutionForResult == null) {
             resolutionForResult =
                 activity.registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { activityResult ->
                     when (activityResult.resultCode) {
                         AppCompatActivity.RESULT_OK -> {
-                            getCurrentLocation(activity, locationCallBack)
+                            mainLocationCallBack?.let { getCurrentLocation(it) }
                         }
                         AppCompatActivity.RESULT_CANCELED -> {
                             dialogDialog(
@@ -47,10 +46,10 @@ object LocationUtils {
                                 "Cancel",
                             ) { isPositive ->
                                 if (isPositive) {
-                                    getCurrentLocation(LocationUtils.activity!!, locationCallBack)
+                                    mainLocationCallBack?.let { getCurrentLocation(it) }
                                 } else {
 //                                    activity.onBackPressed()
-                                    locationCallBack.gpsRequestDeniedCallBack()
+                                    mainLocationCallBack?.gpsRequestDeniedCallBack()
                                 }
                             }
                         }
@@ -61,70 +60,72 @@ object LocationUtils {
                 }
         }
 
+    }
+
+    fun getCurrentLocation(locationCallBack: LocationCallBack) {
+        mainLocationCallBack = locationCallBack
 
 
-
-
-        if (ActivityCompat.checkSelfPermission(
-                activity,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                activity,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            getPermissions(
-                arrayListOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
+            if (ActivityCompat.checkSelfPermission(
+                    activity!!,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    activity!!,
                     Manifest.permission.ACCESS_COARSE_LOCATION
-                )
+                ) != PackageManager.PERMISSION_GRANTED
             ) {
-                getCurrentLocation(activity, locationCallBack)
-            }
-        } else {
-            if (checkGPSStatus()) {
-
-                val cancellationTokenSource = CancellationTokenSource()
-
-                LocationServices.getFusedLocationProviderClient(activity).getCurrentLocation(
-                    LocationRequest.PRIORITY_HIGH_ACCURACY,
-                    cancellationTokenSource.token
-                ).addOnSuccessListener { location: Location? ->
-                    location?.let {
-                        locationCallBack.callBack(it)
-                    }
-                }.addOnFailureListener {
-                }.addOnCanceledListener {
+                getPermissions(
+                    arrayListOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                ) {
+                    getCurrentLocation(locationCallBack)
                 }
-
             } else {
-                val locationRequest = LocationRequest.create()
+                if (checkGPSStatus()) {
 
-                val builder =
-                    LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+                    val cancellationTokenSource = CancellationTokenSource()
 
-                val settingsClient = LocationServices.getSettingsClient(activity)
-                val task = settingsClient.checkLocationSettings(builder.build())
+                    LocationServices.getFusedLocationProviderClient(activity!!).getCurrentLocation(
+                        LocationRequest.PRIORITY_HIGH_ACCURACY,
+                        cancellationTokenSource.token
+                    ).addOnSuccessListener { location: Location? ->
+                        location?.let {
+                            locationCallBack.callBack(it)
+                        }
+                    }.addOnFailureListener {
+                    }.addOnCanceledListener {
+                    }
 
-                task.addOnSuccessListener(activity) {
-                    getCurrentLocation(activity, locationCallBack)
-                }
+                } else {
+                    val locationRequest = LocationRequest.create()
 
-                task.addOnFailureListener(activity) { e ->
-                    if (e is ResolvableApiException) {
-                        try {
+                    val builder =
+                        LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+
+                    val settingsClient = LocationServices.getSettingsClient(activity!!)
+                    val task = settingsClient.checkLocationSettings(builder.build())
+
+                    task.addOnSuccessListener(activity!!) {
+                        getCurrentLocation(locationCallBack)
+                    }
+
+                    task.addOnFailureListener(activity!!) { e ->
+                        if (e is ResolvableApiException) {
+                            try {
 //                                e.startResolutionForResult(activity, 234)
-                            val intentSenderRequest =
-                                IntentSenderRequest.Builder(e.resolution).build()
-                            resolutionForResult!!.launch(intentSenderRequest)
-                        } catch (e1: IntentSender.SendIntentException) {
-                            e1.printStackTrace()
+                                val intentSenderRequest =
+                                    IntentSenderRequest.Builder(e.resolution).build()
+                                resolutionForResult?.launch(intentSenderRequest)
+                            } catch (e1: IntentSender.SendIntentException) {
+                                e1.printStackTrace()
+                            }
                         }
                     }
                 }
-            }
 
-        }
+            }
 
     }
 
