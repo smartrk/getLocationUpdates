@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="270dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp"
+    android:elevation="5dp"
+    android:minWidth="270dp"
+    android:id="@+id/cardview"
+    app:cardBackgroundColor="@android:color/white"
+    app:cardCornerRadius="10dp">
+
+    <LinearLayout
+        android:layout_width="270dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:minWidth="270dp"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="20dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/imgSuccess"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginBottom="20dp"
+            android:visibility="gone" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/txtMessage"
+            style="@style/labelpRegular"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Message" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnPositive"
+                android:stateListAnimator="@null"
+                style="@style/btnStyle"
+                android:layout_width="match_parent"
+                android:backgroundTint="@color/gps_positive_button_color"
+                android:layout_height="35dp"
+                android:layout_weight="1"
+                android:text="@string/yes"
+                android:textSize="11dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnNegative"
+                style="@style/btnStyle"
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:stateListAnimator="@null"
+                android:text="@string/no"
+                android:backgroundTint="@color/gps_negative_button_color"
+                android:textSize="11dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnAlert"
+                style="@style/btnStyle"
+                android:stateListAnimator="@null"
+                android:layout_width="wrap_content"
+                android:backgroundTint="@color/gps_positive_button_color"
+                android:layout_height="35dp"
+                android:layout_gravity="center"
+                android:minWidth="80dp"
+                android:text="@string/okay"
+                android:textSize="11dp"
+                android:visibility="gone" />
+
+
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
+
